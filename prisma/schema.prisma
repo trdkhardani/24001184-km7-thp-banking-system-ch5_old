@@ -18,6 +18,7 @@ model User {
   name  String
   email String @unique
   password String
+  role  Roles @default(customer)
   profile Profile?
   bankAccounts Bank_Account[]
 
@@ -63,4 +64,9 @@ enum identityType {
   Silver
   Gold
   Platinum
+}
+
+enum Roles {
+  admin
+  customer
 }
