@@ -6,7 +6,10 @@ const prisma = new PrismaClient();
 
 import validateAccount from '../validation/account.js';
 
-router.post('/', async (req, res, next) => {
+import authMiddleware from '../middleware/auth.js';
+import adminMiddleware from '../middleware/admin.js';
+
+router.post('/', adminMiddleware, async (req, res, next) => {
     const validatedData = {
         user_id: Number(req.body.user_id),
         bank_name: req.body.bank_name,
@@ -56,7 +59,7 @@ router.post('/', async (req, res, next) => {
     }
 })
 
-router.get('/', async (req, res, next) => {
+router.get('/all', adminMiddleware, async (req, res, next) => {
     try {
         let accounts = await prisma.bank_Account.findMany({
             orderBy: {
@@ -73,20 +76,49 @@ router.get('/', async (req, res, next) => {
     }
 })
 
-router.get('/:accountId', async (req, res, next) => {
-    const accId = Number(req.params.accountId)
+// get authenticated user account's info
+router.get('/', authMiddleware, async (req, res, next) => {
+    const userId = req.user.id
     try {
-        let account = await prisma.bank_Account.findUnique({
+        let account = await prisma.bank_Account.findMany({
             where: {
-                id: accId
+                user_id: userId
             },
             include: {user: true}
         })
 
+        return res.json({
+            status: 'success',
+            account_data: account
+        })
+    } catch(err) {
+        next(err);
+    }
+})
+
+// get specific account info
+router.get('/:accountId', authMiddleware, async (req, res, next) => {
+    const accId = Number(req.params.accountId);
+    const userId = req.user.id;
+    const role = req.user.role;
+    try {
+        let account = await prisma.bank_Account.findUnique({
+            where: {
+                id: accId, 
+            },
+            include: {user: true}
+        })
+        
         if(!account){ // if no matching data by entered account's id
             return res.status(404).json({
                 status: 'failed',
                 message: `Account with id ${accId} not found`
+            })
+        } else if(account.user_id !== userId && role !== 'admin'){ // if the authenticated user don't have the entered account and not the admin
+            // (only admin can access all accounts)
+            return res.status(403).json({
+                status: 'failed',
+                message: `This account doesn't belong to this user`
             })
         }
 
