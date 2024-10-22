@@ -103,7 +103,7 @@ router.post('/login', async (req, res, next) => {
             })
         }
 
-        let token = jwt.sign(user, JWT_SECRET_KEY)
+        let token = jwt.sign(user, JWT_SECRET_KEY, {expiresIn: '6h'})
 
         return res.json({
             message: `Logged in as ${user.name}`,
