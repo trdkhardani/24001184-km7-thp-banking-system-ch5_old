@@ -62,21 +62,21 @@ router.post('/', async (req, res, next) => {
     }
 })
 
-router.get('/', async (req, res) => {
-    let users = await prisma.user.findMany({
-        orderBy: {
-            id: 'asc'
-        }
-    })
+// router.get('/', async (req, res) => {
+//     let users = await prisma.user.findMany({
+//         orderBy: {
+//             id: 'asc'
+//         }
+//     })
 
-    return res.json({
-        status: 'success',
-        users_data: users,
-    })
-})
+//     return res.json({
+//         status: 'success',
+//         users_data: users,
+//     })
+// })
 
-router.get('/:userId', authMiddleware, async (req, res, next) => {
-    const userId = Number(req.params.userId)
+router.get('/', authMiddleware, async (req, res, next) => {
+    const userId = req.user.id // fetch from decoded token in authMiddleware
     
     try {
         let user = await prisma.user.findUnique({
