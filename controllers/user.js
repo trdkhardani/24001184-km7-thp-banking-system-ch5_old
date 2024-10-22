@@ -9,6 +9,8 @@ const prisma = new PrismaClient()
 
 import validateUser from '../validation/user.js';
 
+import authMiddleware from '../middleware/auth.js';
+
 router.post('/', async (req, res, next) => {
     const validatedData = {
         name: req.body.name,
@@ -73,7 +75,7 @@ router.get('/', async (req, res) => {
     })
 })
 
-router.get('/:userId', async (req, res, next) => {
+router.get('/:userId', authMiddleware, async (req, res, next) => {
     const userId = Number(req.params.userId)
     
     try {
