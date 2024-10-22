@@ -118,4 +118,30 @@ router.post('/login', async (req, res, next) => {
     }
 })
 
+router.get('/authenticate', (req, res) => {
+    const { authorization } = req.headers;
+
+    if(!authorization){
+        return res.status(401).json({
+            status: 'failed',
+            message: 'Unauthorized'
+        })
+    }
+
+    jwt.verify(authorization, JWT_SECRET_KEY, (err) => {
+        if(err){
+            return res.status(401).json({
+                status: 'failed',
+                message: 'Unauthorized',
+                error: err.message
+            })
+        }
+
+        return res.json({
+            status: 'success',
+            message: 'Authenticated'
+        })
+    })
+})
+
 export default router;
