@@ -14,7 +14,59 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 import { PrismaClient, Prisma } from '@prisma/client'
 const prisma = new PrismaClient()
 
+import validateUser from '../validation/user.js';
 import validateCredentials from '../validation/login.js';
+
+router.post('/register', async (req, res, next) => {
+    const validatedData = {
+        name: req.body.name,
+        password: req.body.password,
+        email: req.body.email,
+        identity_type: req.body.identity_type,
+        identity_number: req.body.identity_number,
+        address: req.body.address,
+    }; 
+
+    const response = validateUser(validatedData)
+
+    if(response.error){ // if the fields don't meet the requirements
+        return res.status(400).send(response.error.details)
+    }
+    
+    let hashedPassword = await bcrypt.hash(validatedData.password, 10) // hash password
+
+    try{
+        let user = await prisma.user.create({
+            data: {
+                name: validatedData.name,
+                email: validatedData.email,
+                password: hashedPassword,
+                profile: {
+                    create: 
+                        {
+                            identity_type: validatedData.identity_type,
+                            identity_number: validatedData.identity_number,
+                            address: validatedData.address
+                        }
+                }
+            },
+        })
+
+        return res.status(201).json({
+            status: 'success',
+            message: `Successfully added ${user.name}'s data`,
+            user: user,
+        })
+    } catch(err){
+        if(err.code === 'P2002'){ // if email already exists
+            return res.status(409).json({
+                status: 'failed',
+                message: "Email has already been taken"
+            })
+        }
+        next(err)
+    }
+})
 
 router.post('/login', async (req, res, next) => {
     const validatedData = {

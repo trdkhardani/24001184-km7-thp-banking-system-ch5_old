@@ -6,7 +6,7 @@ import transactionController from '../controllers/transaction.js';
 import express from 'express';
 const app = express();
 
-app.use('/api/v1', authController);
+app.use('/api/v1/auth', authController);
 app.use('/api/v1/users', userController);
 app.use('/api/v1/accounts', accountController);
 app.use('/api/v1/transactions', transactionController);
