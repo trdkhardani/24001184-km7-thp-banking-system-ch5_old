@@ -11,25 +11,29 @@ const app = express();
 app.use(async function(req, res, next){
     const { authorization } = req.headers;
 
-    if(!authorization){
-        return res.status(401).json({
-            status: 'failed',
-            message: 'Unauthorized'
+    try {
+        jwt.verify(authorization, JWT_SECRET_KEY, (err, decoded) => {
+            if(err){
+                return res.status(401).json({
+                    status: 'failed',
+                    message: 'Unauthorized',
+                    error: err.message
+                })
+            }
+    
+            req.user = decoded;
+            next();
         })
-    }
-
-    jwt.verify(authorization, JWT_SECRET_KEY, (err, decoded) => {
-        if(err){
+    } catch(err) {
+        if(!authorization){
             return res.status(401).json({
                 status: 'failed',
-                message: 'Unauthorized',
-                error: err.message
+                message: 'Unauthorized'
             })
         }
 
-        req.user = decoded;
-        next();
-    })
+        next(err);
+    }
 })
 
 export default app;
