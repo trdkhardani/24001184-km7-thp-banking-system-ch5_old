@@ -1,15 +1,13 @@
 import Router from 'express-promise-router';
 const router = Router();
 
+import Bcrypt from 'bcrypt';
+const bcrypt = Bcrypt;
+
 import { PrismaClient, Prisma } from '@prisma/client'
 const prisma = new PrismaClient()
 
 import validateUser from '../validation/user.js';
-
-const encrypt = (password) => { // simple password encryption function
-    password = btoa(password)
-    return password;
-}
 
 router.post('/', async (req, res, next) => {
     const validatedData = {
@@ -27,14 +25,14 @@ router.post('/', async (req, res, next) => {
         return res.status(400).send(response.error.details)
     }
     
-    validatedData.password = encrypt(validatedData.password) // encrypt password
+    let hashedPassword = await bcrypt.hash(validatedData.password, 10) // hash password
 
     try{
         let user = await prisma.user.create({
             data: {
                 name: validatedData.name,
                 email: validatedData.email,
-                password: validatedData.password,
+                password: hashedPassword,
                 profile: {
                     create: 
                         {
