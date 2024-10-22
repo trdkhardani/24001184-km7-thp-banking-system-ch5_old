@@ -1,0 +1,27 @@
+{
+  "name": "24001184-km7-thp-banking-system-ch5",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^5.21.0",
+    "24001184-km7-thp-banking-system-ch4": "file:",
+    "24001184-km7-thp-banking-system-ch5": "file:",
+    "bcrypt": "^5.1.1",
+    "express": "^4.21.1",
+    "express-promise-router": "^4.1.1",
+    "joi": "^17.13.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prisma": "^5.21.0"
+  }
+}

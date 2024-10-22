@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id  Int @id @default(autoincrement())
+  name  String
+  email String @unique
+  password String
+  profile Profile?
+  bankAccounts Bank_Account[]
+
+  @@map("users")
+}
+
+model Profile {
+  id  Int @id @default(autoincrement())
+  user_id Int @unique
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  identity_type identityType
+  identity_number String
+  address String
+
+  @@map("profiles")
+}
+
+model Bank_Account {
+  id  Int @id @default(autoincrement())
+  user_id Int
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bank_name String
+  bank_account_number String @unique
+  balance Decimal @db.Decimal(15, 2) @default(0)
+  transactionsAsSource  Transaction[] @relation("sourceTransactions")
+  transactionsAsDestination Transaction[] @relation("destinationTransactions")
+
+  @@map("bank_accounts")
+}
+
+model Transaction {
+  id  Int @id @default(autoincrement())
+  source_account_id Int?
+  destination_account_id Int?
+  sourceAccount        Bank_Account? @relation("sourceTransactions", fields: [source_account_id], references: [id], onDelete: SetNull)
+  destinationAccount   Bank_Account? @relation("destinationTransactions", fields: [destination_account_id], references: [id], onDelete: SetNull)
+  amount  Decimal @db.Decimal(15, 2)
+
+  @@map("transactions")
+}
+
+enum identityType {
+  Silver
+  Gold
+  Platinum
+}
