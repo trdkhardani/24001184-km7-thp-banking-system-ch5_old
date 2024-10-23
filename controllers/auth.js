@@ -244,7 +244,6 @@ router.post('/register', async (req, res, next) => {
  *       500:
  *         description: Server error.
  */
-
 router.post('/login', async (req, res, next) => {
     const validatedData = {
         email: req.body.email,
@@ -295,17 +294,63 @@ router.post('/login', async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/auth/authenticate:
+ *   get:
+ *     summary: Verify JWT authentication
+ *     description: Verifies if the provided JWT token is valid. Returns a success message if authenticated, or an error if unauthorized.
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User successfully authenticated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Authenticated
+ *       401:
+ *         description: Unauthorized. Token is missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 error:
+ *                   type: string
+ *                   example: jwt expired
+ *       500:
+ *         description: Internal server error.
+ */
 router.get('/authenticate', (req, res) => {
     const { authorization } = req.headers;
 
-    if(!authorization){
+    if(!authorization || !authorization.startsWith('Bearer ')){
         return res.status(401).json({
             status: 'failed',
             message: 'Unauthorized'
         })
     }
 
-    jwt.verify(authorization, JWT_SECRET_KEY, (err) => {
+    // Extract the token from "Bearer <token>"
+    const token = authorization.split(' ')[1];
+
+    jwt.verify(token, JWT_SECRET_KEY, (err) => {
         if(err){
             return res.status(401).json({
                 status: 'failed',
