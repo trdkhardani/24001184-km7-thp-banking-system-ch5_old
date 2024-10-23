@@ -257,6 +257,99 @@ router.get('/all', adminMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/accounts:
+ *   get:
+ *     summary: Get authenticated user's bank account information
+ *     description: This endpoint retrieves the bank accounts linked to the authenticated user. The request must include a valid JWT token.
+ *     tags:
+ *       - Accounts
+ *     security:
+ *       - bearerAuth: []  # This ensures the endpoint is secured with a Bearer token
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the authenticated user's account data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 account_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       user_id:
+ *                         type: integer
+ *                         example: 1
+ *                       bank_name:
+ *                         type: string
+ *                         example: Bank of America
+ *                       bank_account_number:
+ *                         type: string
+ *                         example: 1234567890
+ *                       balance:
+ *                         type: number
+ *                         example: 5000.00
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 1
+ *                           name:
+ *                             type: string
+ *                             example: John Doe
+ *                           email:
+ *                             type: string
+ *                             example: john@example.com
+ *       401:
+ *         description: Unauthorized. The request lacks a valid token or the token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized. Please provide a valid token.
+ *       404:
+ *         description: No account found for the authenticated user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: No bank account found for the authenticated user.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
 // get authenticated user account's info
 router.get('/', authMiddleware, async (req, res, next) => {
     const userId = req.user.id
