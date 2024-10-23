@@ -370,6 +370,118 @@ router.get('/', authMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/accounts/{accountId}:
+ *   get:
+ *     summary: Get specific account information
+ *     description: Retrieves information for a specific bank account. The authenticated user can only access their own accounts unless they are an admin, in which case they can access all accounts.
+ *     tags:
+ *       - Accounts
+ *     security:
+ *       - bearerAuth: []  # The endpoint requires a Bearer token for authentication.
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The ID of the bank account to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the account information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 account_data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     user_id:
+ *                       type: integer
+ *                       example: 1
+ *                     bank_name:
+ *                       type: string
+ *                       example: Bank of America
+ *                     bank_account_number:
+ *                       type: string
+ *                       example: 1234567890
+ *                     balance:
+ *                       type: number
+ *                       example: 5000.00
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 1
+ *                         name:
+ *                           type: string
+ *                           example: John Doe
+ *                         email:
+ *                           type: string
+ *                           example: john@example.com
+ *       401:
+ *         description: Unauthorized. The request lacks a valid token or the token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized. Please provide a valid token.
+ *       403:
+ *         description: Forbidden. The user does not own the account and is not an admin.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: This account doesn't belong to this user
+ *       404:
+ *         description: Account not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Account with id 1 not found
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
 // get specific account info
 router.get('/:accountId', authMiddleware, async (req, res, next) => {
     const accId = Number(req.params.accountId);
