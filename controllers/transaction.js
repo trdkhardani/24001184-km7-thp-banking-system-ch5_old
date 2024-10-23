@@ -96,7 +96,7 @@ router.post('/', authMiddleware, async (req, res, next) => {
     }
 })
 
-router.get('/', async (req, res, next) => {
+router.get('/all', adminMiddleware, async (req, res, next) => {
     try{
         let transactions = await prisma.transaction.findMany({
             orderBy: {
@@ -113,13 +113,47 @@ router.get('/', async (req, res, next) => {
     }
 })
 
-router.get('/:transaction', async (req, res, next) => {
+router.get('/', authMiddleware, async (req, res, next) => {
+    const userId = req.user.id;
+    try{
+        let transactions = await prisma.transaction.findMany({
+            orderBy: {
+                id: 'asc'
+            },
+            where: {
+                OR: [ // show only source and destination account that related to authenticated user
+                    {
+                        sourceAccount: {
+                            user_id: userId
+                        }
+                    },
+                    {
+                        destinationAccount: {
+                            user_id: userId
+                        }
+                    }
+                ]
+            },
+        })
+
+        return res.json({
+            status: 'success',
+            transactions_data: transactions
+        });
+    } catch(err) {
+        next(err)
+    }
+})
+
+router.get('/:transaction', authMiddleware, async (req, res, next) => {
     const transactionId = Number(req.params.transaction)
+    const userId = req.user.id;
+    const role = req.user.role;
     try{
         let transaction = await prisma.transaction.findUnique({
             where: {
-                id: transactionId,
-            }, 
+                id: transactionId
+            },
             include: {
                 sourceAccount: {
                     include: {
@@ -147,7 +181,21 @@ router.get('/:transaction', async (req, res, next) => {
                 status: 'failed',
                 message: `Transaction with id ${transactionId} not found`
             })
-        }
+        } 
+        
+        const sourceAccId = transaction.sourceAccount.user_id
+        const destAccId = transaction.destinationAccount.user_id
+        
+        if (sourceAccId !== userId && destAccId !== userId && role !== 'admin'){
+            // Check if the authenticated user is involved in the transaction
+            // The user must be either the sender (source account owner) or the receiver (destination account owner).
+            // Additionally, allow access if the user's role is 'admin'.
+            // If none of these conditions are met, deny access with a 403 Forbidden response.
+            return res.status(403).json({
+                status: 'failed',
+                message: `This user is not authorized to access this transaction`
+            })
+        } else 
 
         return res.json({
             status: 'success',
