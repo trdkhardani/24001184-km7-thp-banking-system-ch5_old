@@ -517,6 +517,109 @@ router.get('/:accountId', authMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/accounts/{accountId}:
+ *   delete:
+ *     summary: Delete a specific bank account
+ *     description: This endpoint allows only **admin users** to delete a bank account by its ID.
+ *     tags:
+ *       - Accounts
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token for admin access
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The ID of the bank account to delete.
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the bank account.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Account with id 1 deleted successfully
+ *                 deleted_account:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     user_id:
+ *                       type: integer
+ *                       example: 1
+ *                     bank_name:
+ *                       type: string
+ *                       example: Bank of America
+ *                     bank_account_number:
+ *                       type: string
+ *                       example: 1234567890
+ *                     balance:
+ *                       type: number
+ *                       example: 5000.00
+ *       401:
+ *         description: Unauthorized. A valid admin token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized. Please provide a valid token.
+ *       403:
+ *         description: Forbidden. The user is not authorized to delete the account (only admins can delete).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden. Admin access required.
+ *       404:
+ *         description: Account not found. No account matches the given ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Account with id 1 not found
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
 router.delete('/:accountId', adminMiddleware, async (req, res, next) => {
     const accId = Number(req.params.accountId);
     try {
