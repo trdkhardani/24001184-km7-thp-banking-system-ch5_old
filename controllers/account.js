@@ -9,6 +9,106 @@ import validateAccount from '../validation/account.js';
 import authMiddleware from '../middleware/auth.js';
 import adminMiddleware from '../middleware/admin.js';
 
+/**
+ * @swagger
+ * /api/v1/accounts:
+ *   post:
+ *     summary: Add a new bank account
+ *     description: This endpoint allows only **admin users** to create a new bank account for a user, with a starting balance.
+ *     tags:
+ *       - Accounts
+ *     security:
+ *       - bearerAuth: []  # This ensures the endpoint is secured with a Bearer token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 1
+ *                 description: ID of the user the account belongs to.
+ *               bank_name:
+ *                 type: string
+ *                 example: Bank of America
+ *               bank_account_number:
+ *                 type: string
+ *                 example: 1234567890
+ *               balance:
+ *                 type: number
+ *                 example: 1000.00
+ *                 description: Initial balance for the new bank account. Must be positive.
+ *     responses:
+ *       201:
+ *         description: Successfully created the bank account.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: successfully added account for user_id 1
+ *       400:
+ *         description: Validation error. Invalid input fields or balance is not positive.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Balance must be a positive number
+ *       403:
+ *         description: User's role is not an admin.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden
+ *       409:
+ *         description: Conflict error. Either the user_id does not exist, or the bank account number already exists.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: No user with user_id 1
+ *       401:
+ *         description: Unauthorized. Token is missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Internal server error.
+ */
 router.post('/', adminMiddleware, async (req, res, next) => {
     const validatedData = {
         user_id: Number(req.body.user_id),
