@@ -1,3 +1,7 @@
+import SwaggerUI from 'swagger-ui-express';
+const swaggerUI = SwaggerUI;
+import swaggerSpec from './swagger.js'
+
 import express from 'express';
 const app = express();
 import router from './routes/router.js';
@@ -8,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 app.use(router);
+app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 app.use(function(req, res, next) {
     return res.status(404).json({
