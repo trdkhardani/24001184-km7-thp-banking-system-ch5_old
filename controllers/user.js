@@ -65,6 +65,101 @@ router.post('/', async (req, res, next) => {
 
 /**
  * @swagger
+ * /api/v1/users/all:
+ *   get:
+ *     summary: Retrieve all users' data
+ *     description: This endpoint allows only **admin users** to retrieve a list of all registered users, ordered by their ID in ascending order.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token with admin privileges.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all users' data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 users_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: John Doe
+ *                       email:
+ *                         type: string
+ *                         example: john@example.com
+ *                       role:
+ *                         type: string
+ *                         example: admin
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2023-10-23T12:34:56.789Z
+ *       401:
+ *         description: Unauthorized. A valid token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized. Please provide a valid token.
+ *       403:
+ *         description: Forbidden. The user does not have admin privileges.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden. Admin access required.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
+router.get('/all', adminMiddleware, async (req, res) => {
+    let users = await prisma.user.findMany({
+        orderBy: {
+            id: 'asc'
+        }
+    })
+
+    return res.json({
+        status: 'success',
+        users_data: users,
+    })
+})
+
+/**
+ * @swagger
  * /api/v1/users:
  *   get:
  *     summary: Get authenticated user's info
@@ -149,19 +244,6 @@ router.post('/', async (req, res, next) => {
  *       500:
  *         description: Internal server error.
  */
-router.get('/all', adminMiddleware, async (req, res) => {
-    let users = await prisma.user.findMany({
-        orderBy: {
-            id: 'asc'
-        }
-    })
-
-    return res.json({
-        status: 'success',
-        users_data: users,
-    })
-})
-
 router.get('/', authMiddleware, async (req, res, next) => {
     const userId = req.user.id // fetch from decoded token in authMiddleware
     
