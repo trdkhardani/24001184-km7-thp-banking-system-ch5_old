@@ -131,8 +131,8 @@ router.get('/:accountId', authMiddleware, async (req, res, next) => {
     }
 })
 
-router.delete('/:accountId', async (req, res, next) => {
-    const accId = Number(req.params.accountId)
+router.delete('/:accountId', adminMiddleware, async (req, res, next) => {
+    const accId = Number(req.params.accountId);
     try {
         let account = await prisma.bank_Account.delete({
             where: {
