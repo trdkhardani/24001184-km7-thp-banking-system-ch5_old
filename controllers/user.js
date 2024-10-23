@@ -63,6 +63,92 @@ router.post('/', async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: Get authenticated user's info
+ *     description: Retrieves the information of the authenticated user, including their profile details.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []  # This indicates the endpoint requires a Bearer token
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user's info.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 user_data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 4
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     email:
+ *                       type: string
+ *                       example: john@example.com
+ *                     password:
+ *                       type: string
+ *                       example: $2a$12$0YkhPrnyJ5F.7BQjxZVe7u7zQMq9sOHVuO5grpxoOgAi5S8OStZ9W
+ *                     role:
+ *                       type: string
+ *                       example: customer
+ *                     profile:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 1
+ *                         user_id:
+ *                           type: integer
+ *                           example: 4
+ *                         identity_type:
+ *                           type: string
+ *                           example: KTP
+ *                         identity_number:
+ *                           type: string
+ *                           example: 1234567890
+ *                         address:
+ *                           type: string
+ *                           example: 123 Main St, Jakarta
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: User with id 4 not found
+ *       401:
+ *         description: Unauthorized. Bearer token is missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Internal server error.
+ */
 router.get('/all', adminMiddleware, async (req, res) => {
     let users = await prisma.user.findMany({
         orderBy: {
