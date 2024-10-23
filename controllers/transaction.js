@@ -6,7 +6,12 @@ const prisma = new PrismaClient();
 
 import validateTransaction from '../validation/transaction.js';
 
-router.post('/', async (req, res, next) => {
+import authMiddleware from '../middleware/auth.js';
+import adminMiddleware from '../middleware/admin.js';
+
+router.post('/', authMiddleware, async (req, res, next) => {
+    const userId = req.user.id;
+    
     const validatedData = {
         source_account_id: Number(req.body.source_account_id),
         destination_account_id: Number(req.body.destination_account_id),
@@ -41,6 +46,11 @@ router.post('/', async (req, res, next) => {
             return res.status(409).json({
                 status: 'failed',
                 message: `Cannot do transaction between same account`
+            })
+        } else if(userId !== getSourceAccInfo.user_id){ // if the authenticated user don't have the entered source account
+            return res.status(403).json({
+                status: 'failed',
+                message: `The source account doesn't belong to this user`
             })
         } else if(validatedData.amount > getSourceAccInfo.balance){ // if entered amount is greater than source bank account's balance
             return res.status(409).json({
