@@ -11,11 +11,8 @@ const port = 3000;
 import CORS from 'cors';
 const cors = CORS;
 
-app.use(cors({
-    origin: 'http://localhost:3000/docs',
-    allowedHeaders: ['Authorization', 'Content-Type']
-  }));
-  
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 

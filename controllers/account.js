@@ -159,6 +159,87 @@ router.post('/', adminMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/accounts/all:
+ *   get:
+ *     summary: Retrieve all bank accounts
+ *     description: This endpoint allows only **admin users** to retrieve a list of all bank accounts in the system, ordered by account ID in ascending order.
+ *     tags:
+ *       - Accounts
+ *     security:
+ *       - bearerAuth: []  # This ensures the endpoint is secured with a Bearer token
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of all bank accounts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 accounts_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       user_id:
+ *                         type: integer
+ *                         example: 1
+ *                       bank_name:
+ *                         type: string
+ *                         example: Bank of America
+ *                       bank_account_number:
+ *                         type: string
+ *                         example: 1234567890
+ *                       balance:
+ *                         type: number
+ *                         example: 1000.00
+ *       401:
+ *         description: Unauthorized. The request lacks a valid token or the token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized. Please provide a valid token.
+ *       403:
+ *         description: Forbidden. User does not have admin privileges.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden. Admin access required.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
 router.get('/all', adminMiddleware, async (req, res, next) => {
     try {
         let accounts = await prisma.bank_Account.findMany({
