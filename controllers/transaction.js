@@ -354,6 +354,71 @@ router.get('/all', adminMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/transactions:
+ *   get:
+ *     summary: Retrieve authenticated user's transactions
+ *     description: This endpoint retrieves all transactions related to the authenticated user, either as the source or destination account holder.
+ *     tags:
+ *       - Transactions
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token for authentication.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the user's transactions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 transactions_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       source_account_id:
+ *                         type: integer
+ *                         example: 1
+ *                       destination_account_id:
+ *                         type: integer
+ *                         example: 2
+ *                       amount:
+ *                         type: number
+ *                         example: 250.00
+ *       401:
+ *         description: Unauthorized. A valid token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
 router.get('/', authMiddleware, async (req, res, next) => {
     const userId = req.user.id;
     try{
