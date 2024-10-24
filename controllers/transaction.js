@@ -9,6 +9,169 @@ import validateTransaction from '../validation/transaction.js';
 import authMiddleware from '../middleware/auth.js';
 import adminMiddleware from '../middleware/admin.js';
 
+/**
+ * @swagger
+ * /api/v1/transactions:
+ *   post:
+ *     summary: Create a new transaction
+ *     description: This endpoint allows an authenticated user to create a new transaction between two bank accounts. The user must own the source account, and the transaction amount must not exceed the available balance.
+ *     tags:
+ *       - Transactions
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token for authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               source_account_id:
+ *                 type: integer
+ *                 example: 1
+ *                 description: The ID of the source bank account (must belong to the authenticated user).
+ *               destination_account_id:
+ *                 type: integer
+ *                 example: 2
+ *                 description: The ID of the destination bank account.
+ *               amount:
+ *                 type: number
+ *                 example: 100.00
+ *                 description: The amount to transfer. Must be less than or equal to the source account's balance.
+ *     responses:
+ *       201:
+ *         description: Transaction created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 transaction:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     source_account_id:
+ *                       type: integer
+ *                       example: 1
+ *                     destination_account_id:
+ *                       type: integer
+ *                       example: 2
+ *                     amount:
+ *                       type: number
+ *                       example: 100.00
+ *                 source_account:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     user_id:
+ *                       type: integer
+ *                       example: 1
+ *                     bank_name:
+ *                       type: string
+ *                       example: Bank of America
+ *                     bank_account_number:
+ *                       type: string
+ *                       example: 1234567890
+ *                     balance:
+ *                       type: number
+ *                       example: 5000
+ *                 destination_account:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 2
+ *                     user_id:
+ *                       type: integer
+ *                       example: 2
+ *                     bank_name:
+ *                       type: string
+ *                       example: Chase Bank
+ *                     bank_account_number:
+ *                       type: string
+ *                       example: 9876543210
+ *                     balance:
+ *                       type: number
+ *                       example: 5100
+  *       400:
+ *         description: Validation error. Input data does not meet the required format.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     example: '"amount" must be a positive number'
+ *                   path:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["amount"]
+ *                   type:
+ *                     type: string
+ *                     example: "number.positive"
+ *                   context:
+ *                     type: object
+ *                     properties:
+ *                       label:
+ *                         type: string
+ *                         example: "amount"
+ *                       value:
+ *                         type: number
+ *                         example: 0
+ *                       key:
+ *                         type: string
+ *                         example: "amount"
+ *       403:
+ *         description: Forbidden. The authenticated user does not own the source account.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: The source account doesn't belong to this user
+ *       409:
+ *         description: Conflict error. Invalid account IDs, insufficient balance, or same account used as source and destination.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Cannot do transaction between same account
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error.
+ */
 router.post('/', authMiddleware, async (req, res, next) => {
     const userId = req.user.id;
     
