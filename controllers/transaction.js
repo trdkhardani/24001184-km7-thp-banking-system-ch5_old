@@ -451,6 +451,145 @@ router.get('/', authMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/transactions/{transactionId}:
+ *   get:
+ *     summary: Retrieve a specific transaction by ID
+ *     description: This endpoint retrieves detailed information for a specific transaction. The authenticated user must be involved in the transaction (as the sender or receiver) or have an admin role to access it.
+ *     tags:
+ *       - Transactions
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token for authentication.
+ *     parameters:
+ *       - in: path
+ *         name: transactionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The ID of the transaction to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the transaction details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 transaction:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     source_account_id:
+ *                       type: integer
+ *                       example: 1
+ *                     destination_account_id:
+ *                       type: integer
+ *                       example: 2
+ *                     amount:
+ *                       type: number
+ *                       example: 100.00
+ *                     sourceAccount:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 1
+ *                         bank_name:
+ *                           type: string
+ *                           example: Bank of America
+ *                         bank_account_number:
+ *                           type: string
+ *                           example: 11112222222
+ *                         balance:
+ *                           type: string
+ *                           example: 2000
+ *                         user:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                               example: John Doe
+ *                     destinationAccount:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 2
+ *                         bank_name:
+ *                           type: string
+ *                           example: Chase Bank
+ *                         bank_account_number:
+ *                           type: string
+ *                           example: 22221111111
+ *                         balance:
+ *                           type: string
+ *                           example: 1000
+ *                         user:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                               example: Jane Smith
+ *       401:
+ *         description: Unauthorized. A valid token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: Forbidden. The user is not authorized to access this transaction.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: This user is not authorized to access this transaction
+ *       404:
+ *         description: Transaction not found. No transaction matches the given ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Transaction with id 1 not found
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
 router.get('/:transaction', authMiddleware, async (req, res, next) => {
     const transactionId = Number(req.params.transaction)
     const userId = req.user.id;
