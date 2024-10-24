@@ -98,13 +98,12 @@ router.post('/', async (req, res, next) => {
  *                       email:
  *                         type: string
  *                         example: john@example.com
+ *                       password:
+ *                          type: string
+ *                          example: $2a$12$0YkhPrnyJ5F.7BQjxZVe7u7zQMq9sOHVuO5grpxoOgAi5S8OStZ9W
  *                       role:
- *                         type: string
- *                         example: admin
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                         example: 2023-10-23T12:34:56.789Z
+ *                          type: string
+ *                          example: customer
  *       401:
  *         description: Unauthorized. A valid token is required.
  *         content:
@@ -117,7 +116,7 @@ router.post('/', async (req, res, next) => {
  *                   example: failed
  *                 message:
  *                   type: string
- *                   example: Unauthorized. Please provide a valid token.
+ *                   example: Unauthorized
  *       403:
  *         description: Forbidden. The user does not have admin privileges.
  *         content:
@@ -130,7 +129,132 @@ router.post('/', async (req, res, next) => {
  *                   example: failed
  *                 message:
  *                   type: string
- *                   example: Forbidden. Admin access required.
+ *                   example: Forbidden
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get('/all', adminMiddleware, async (req, res) => {
+    let users = await prisma.user.findMany({
+        orderBy: {
+            id: 'asc'
+        }
+    })
+
+    return res.json({
+        status: 'success',
+        users_data: users,
+    })
+})
+
+/**
+ * @swagger
+ * /api/v1/users/{userId}:
+ *   get:
+ *     summary: Retrieve specific user data along with profile
+ *     description: This endpoint allows only **admin users** to retrieve the data of a specific user by ID, including the user's profile information.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token with admin privileges.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The ID of the user to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the user data with profile information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 user_data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     email:
+ *                       type: string
+ *                       example: john@example.com
+ *                     password:
+ *                       type: string
+ *                       example: $2a$12$0YkhPrnyJ5F.7BQjxZVe7u7zQMq9sOHVuO5grpxoOgAi5S8OStZ9W
+ *                     role:
+ *                       type: string
+ *                       example: customer
+ *                     profile:
+ *                       type: object
+ *                       properties:
+ *                         identity_type:
+ *                           type: string
+ *                           example: KTP
+ *                         identity_number:
+ *                           type: string
+ *                           example: 1234567890
+ *                         address:
+ *                           type: string
+ *                           example: 123 Main St, Jakarta
+ *       401:
+ *         description: Unauthorized. A valid token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden
+ *       404:
+ *         description: User not found. No user matches the provided ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: User with id 1 not found
  *       500:
  *         description: Internal server error.
  *         content:
@@ -145,17 +269,31 @@ router.post('/', async (req, res, next) => {
  *                   type: string
  *                   example: Internal server error.
  */
-router.get('/all', adminMiddleware, async (req, res) => {
-    let users = await prisma.user.findMany({
-        orderBy: {
-            id: 'asc'
+router.get('/:userId', adminMiddleware, async (req, res, next) => {
+    const userId = Number(req.params.userId)
+    
+    try {
+        let user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            include: {profile: true}
+        })
+    
+        if(!user){ // if no matching data by entered user's id
+            return res.status(404).json({
+                status: 'failed',
+                message: `User with id ${userId} not found`
+            })
         }
-    })
 
-    return res.json({
-        status: 'success',
-        users_data: users,
-    })
+        return res.json({
+            status: 'success',
+            user_data: user,
+        })
+    } catch(err) {
+        next(err)
+    }
 })
 
 /**
@@ -208,7 +346,7 @@ router.get('/all', adminMiddleware, async (req, res) => {
  *                           example: 4
  *                         identity_type:
  *                           type: string
- *                           example: KTP
+ *                           example: Silver
  *                         identity_number:
  *                           type: string
  *                           example: 1234567890
@@ -242,7 +380,7 @@ router.get('/all', adminMiddleware, async (req, res) => {
  *                   type: string
  *                   example: Unauthorized
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error
  */
 router.get('/', authMiddleware, async (req, res, next) => {
     const userId = req.user.id // fetch from decoded token in authMiddleware
