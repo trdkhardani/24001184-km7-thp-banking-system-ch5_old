@@ -259,6 +259,84 @@ router.post('/', authMiddleware, async (req, res, next) => {
     }
 })
 
+/**
+ * @swagger
+ * /api/v1/transactions/all:
+ *   get:
+ *     summary: Retrieve all transactions data
+ *     description: This endpoint allows only **admin users** to retrieve a list of all transactions, ordered by their ID in ascending order.
+ *     tags:
+ *       - Transactions
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token with admin privileges.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all transactions data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 transactions_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       source_account_id:
+ *                         type: integer
+ *                         example: 1
+ *                       destination_account_id:
+ *                         type: integer
+ *                         example: 2
+ *                       amount:
+ *                         type: number
+ *                         example: 500.00
+ *       401:
+ *         description: Unauthorized. A valid token is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: Forbidden. Only admin users can access this endpoint.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Forbidden
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: failed
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
 router.get('/all', adminMiddleware, async (req, res, next) => {
     try{
         let transactions = await prisma.transaction.findMany({
